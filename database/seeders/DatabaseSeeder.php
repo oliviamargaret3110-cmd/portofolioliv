@@ -25,14 +25,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Akun admin (password: "password" - wajib diganti setelah login)
+        // 1. Akun admin
+        $adminPassword = config('auth.portfolio_admin_seed_password');
+        $canUseDefaultAdminPassword = app()->environment(['local', 'testing']);
+        $admin = User::query()->where('email', 'admin@portfolio.test')->first();
+
+        if ($admin === null && ! $canUseDefaultAdminPassword && blank($adminPassword)) {
+            throw new \RuntimeException('PORTFOLIO_ADMIN_SEED_PASSWORD must be set before seeding outside local/testing.');
+        }
+
         $admin = User::firstOrCreate(
             ['email' => 'admin@portfolio.test'],
             [
                 'name' => 'Admin Portofolio',
-                'password' => Hash::make('password'),
+                'password' => Hash::make($adminPassword ?: 'password'),
             ]
         );
+
+        if (! $canUseDefaultAdminPassword && Hash::check('password', $admin->password)) {
+            if (blank($adminPassword)) {
+                throw new \RuntimeException('PORTFOLIO_ADMIN_SEED_PASSWORD must be set before replacing the default admin password.');
+            }
+
+            $admin->forceFill(['password' => Hash::make($adminPassword)])->save();
+        }
+
         $admin->forceFill(['is_admin' => true, 'is_superadmin' => true])->save();
 
         // 2. Profil pemilik portofolio (kontak sudah data asli)

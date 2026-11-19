@@ -114,4 +114,6 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'portfolio_admin_seed_password' => env('PORTFOLIO_ADMIN_SEED_PASSWORD'),
+
 ];
